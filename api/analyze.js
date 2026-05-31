@@ -56,14 +56,15 @@ export default async function handler(req, res) {
 
   // ── Appel RapidAPI ───────────────────────────────────────────
   try {
-    const apiUrl = `https://${apiHost}/v1/social/autolink?url=${encodeURIComponent(url)}`;
-
+const apiUrl = `https://${apiHost}/v1/social/autolink`;
     const apiRes = await fetch(apiUrl, {
-      method: 'GET',
+      method: 'POST',
       headers: {
+        'Content-Type':    'application/json',
         'X-RapidAPI-Key':  apiKey,
         'X-RapidAPI-Host': apiHost,
       },
+      body: JSON.stringify({ url }),
     });
 
     // Gestion quota dépassé
