@@ -102,28 +102,39 @@ export default async function handler(req, res) {
 
 /**
  * Normalise la réponse de l'API vers un tableau de formats uniforme.
- * L'API Social Media Video Downloader retourne les liens dans `links`.
+ * Compatible avec "Social Download All In One" (champ `medias`).
  */
 function normalizeFormats(data) {
   const formats = [];
 
-  // Formats vidéo dans le champ `links`
-  const links = data.links || data.medias || data.formats || [];
+  const links = data.medias || data.links || data.formats || [];
 
   links.forEach((item) => {
-    const quality  = item.quality || item.resolution || item.label || item.size || 'HD';
-    const ext      = (item.type || item.format || item.ext || 'mp4').toLowerCase().replace('.', '');
-    const isAudio  = ext === 'mp3' || ext === 'aac' || ext === 'm4a' || item.type === 'audio';
-    const url      = item.url || item.link || item.download_url || item.src || '';
+    const isAudio  = item.type === 'audio' || item.extension === 'mp3' || item.extension === 'aac';
+    const ext      = item.extension || (isAudio ? 'mp3' : 'mp4');
+    const url      = item.url || item.link || '';
+    if (!url) return;
 
-    if (!url) return; // Ignore les entrées sans URL
+    // Libellé qualité lisible
+    let quality;
+    if (isAudio) {
+      quality = 'MP3';
+    } else if (item.quality) {
+      // ex: "hd_no_watermark" → "HD", "no_watermark" → "SD", "watermark" → "SD ⚠"
+      const q = item.quality;
+      if (q.includes('hd'))        quality = item.width ? `${item.width}p` : 'HD';
+      else if (q === 'watermark')  quality = 'SD ⚠';
+      else                         quality = item.width ? `${item.width}p` : 'SD';
+    } else {
+      quality = item.width ? `${item.width}p` : 'HD';
+    }
 
     formats.push({
-      quality:  isAudio ? 'MP3' : String(quality).replace('p', '') + 'p',
-      ext:      ext || (isAudio ? 'mp3' : 'mp4'),
+      quality,
+      ext,
       type:     isAudio ? 'audio' : 'video',
       url,
-      filesize: item.size || item.filesize || null,
+      filesize: item.data_size || item.filesize || null,
     });
   });
 
