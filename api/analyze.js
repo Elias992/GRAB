@@ -56,7 +56,7 @@ export default async function handler(req, res) {
 
   // ── Appel RapidAPI ───────────────────────────────────────────
   try {
-    const apiUrl = `https://${apiHost}/smvd/get/all?url=${encodeURIComponent(url)}`;
+    const apiUrl = `https://${apiHost}/v1/social/autolink?url=${encodeURIComponent(url)}`;
 
     const apiRes = await fetch(apiUrl, {
       method: 'GET',
